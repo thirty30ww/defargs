@@ -5,15 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31b5210f-e60d-4e89-a984-6add75bab185" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/annotations/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/annotations/src/main/java/io/github/thirty30ww/annotation/DefaultValue.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/example/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/example/src/main/java/io/github/thirty30ww/ExampleService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/example/src/test/java/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/processor/DefaultValueProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/processor/DefaultValueProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/processor/DefaultValueProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/TypeConversionUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/TypeConversionUtils.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +41,7 @@
     "Maven.DefArgs [clean].executor": "Run",
     "Maven.DefArgs [compile].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -112,7 +105,7 @@
       <updated>1759145721618</updated>
       <workItem from="1761383472751" duration="8270000" />
       <workItem from="1761394140494" duration="5361000" />
-      <workItem from="1761440817219" duration="6253000" />
+      <workItem from="1761440817219" duration="7028000" />
     </task>
     <servers />
   </component>

@@ -65,52 +65,29 @@ public class TypeConversionUtils {
      * 根据类型进行具体的转换
      */
     private static String convertByType(String typeName, String rawValue) {
-        switch (typeName) {
+        return switch (typeName) {
             // 字符串类型
-            case "java.lang.String":
-            case "String":
-                return convertToStringLiteral(rawValue);
-                
+            case "java.lang.String", "String" -> convertToStringLiteral(rawValue);
+
             // 整数类型
-            case "java.lang.Integer":
-            case "Integer":
-                return convertToIntegerLiteral(rawValue);
-                
-            case "java.lang.Long":
-            case "Long":
-                return convertToLongLiteral(rawValue);
-                
-            case "java.lang.Short":
-            case "Short":
-                return convertToShortLiteral(rawValue);
-                
-            case "java.lang.Byte":
-            case "Byte":
-                return convertToByteLiteral(rawValue);
-                
+            case "java.lang.Integer", "Integer" -> convertToIntegerLiteral(rawValue);
+            case "java.lang.Long", "Long" -> convertToLongLiteral(rawValue);
+            case "java.lang.Short", "Short" -> convertToShortLiteral(rawValue);
+            case "java.lang.Byte", "Byte" -> convertToByteLiteral(rawValue);
+
             // 浮点类型
-            case "java.lang.Float":
-            case "Float":
-                return convertToFloatLiteral(rawValue);
-                
-            case "java.lang.Double":
-            case "Double":
-                return convertToDoubleLiteral(rawValue);
-                
+            case "java.lang.Float", "Float" -> convertToFloatLiteral(rawValue);
+            case "java.lang.Double", "Double" -> convertToDoubleLiteral(rawValue);
+
             // 布尔类型
-            case "java.lang.Boolean":
-            case "Boolean":
-                return convertToBooleanLiteral(rawValue);
-                
+            case "java.lang.Boolean", "Boolean" -> convertToBooleanLiteral(rawValue);
+
             // 字符类型
-            case "java.lang.Character":
-            case "Character":
-                return convertToCharacterLiteral(rawValue);
-                
-            default:
+            case "java.lang.Character", "Character" -> convertToCharacterLiteral(rawValue);
+            default ->
                 // 对于不支持的类型，尝试直接返回原值（可能是枚举或其他常量）
-                return rawValue;
-        }
+                    rawValue;
+        };
     }
 
     /**

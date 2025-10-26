@@ -3,6 +3,7 @@ package io.github.thirty30ww.processor;
 import io.github.thirty30ww.annotation.DefaultValue;
 import io.github.thirty30ww.utils.CodeGenerationUtils;
 import com.google.auto.service.AutoService;
+import io.github.thirty30ww.utils.TypeConversionUtils;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -153,6 +154,16 @@ public class DefaultValueProcessor extends AbstractProcessor {  // 继承 Abstra
 
             // 如果有注解，记录参数索引和默认值
             if (annotation != null) {
+                String paramType = param.asType().toString();
+                // 验证参数类型是否支持
+                if (!TypeConversionUtils.isSupportedType(paramType)) {
+                    messager.printMessage(Diagnostic.Kind.ERROR,
+                            "Unsupported parameter type '" + paramType + "' for @DefaultValue annotation. " +
+                                    "Supported types: " + TypeConversionUtils.getSupportedTypesDescription(),
+                            param);
+                    return; // 跳过这个方法的处理
+                }
+
                 defaultIdxs.add(i);
                 defaultValueMap.put(i, annotation.value());
             }
