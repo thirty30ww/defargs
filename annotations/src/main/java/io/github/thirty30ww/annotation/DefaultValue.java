@@ -19,9 +19,4 @@ public @interface DefaultValue {
      * 默认值的字符串表示。
      */
     String value();
-    /**
-     * 默认值的描述。
-     * 默认值为空字符串。
-     */
-    String description() default "";
 }

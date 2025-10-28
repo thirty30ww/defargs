@@ -1,45 +1,72 @@
 package io.github.thirty30ww.processor;
 
-import io.github.thirty30ww.annotation.DefaultValue;
-import io.github.thirty30ww.utils.CodeGenerationUtils;
 import com.google.auto.service.AutoService;
-import io.github.thirty30ww.utils.TypeConversionUtils;
+import com.sun.source.util.Trees;
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.ListBuffer;
+import io.github.thirty30ww.annotation.DefaultValue;
+import io.github.thirty30ww.utils.ASTOperator;
+import io.github.thirty30ww.utils.MethodGenerator;
+import io.github.thirty30ww.utils.ParameterAnalyzer;
+import io.github.thirty30ww.utils.ModuleAccessor;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * 一个注解处理器，用于处理 {@link DefaultValue} 注解。
- * 它会扫描方法参数上的 {@link DefaultValue} 注解，为所在类生成一个“派生类”，在该类中补充省略默认参数的重载方法。
+ * {@link DefaultValue} 注解处理器
+ * <p>
+ * - 使用 Javac Tree API 直接在原类中添加重载方法。
+ * - 为每个包含注解的方法添加一个重载方法，包含默认参数值。
  */
-@AutoService(Processor.class)   // 自动注册这个类为注解处理器，编译时会被自动发现
-@SupportedAnnotationTypes("io.github.thirty30ww.annotation.DefaultValue")   // 声明这个处理器支持处理的注解类型，这里是 DefaultValue 注解
-@SupportedSourceVersion(SourceVersion.RELEASE_17)   // 声明这个处理器支持的 Java 版本，这里是 Java 17
-public class DefaultValueProcessor extends AbstractProcessor {  // 继承 AbstractProcessor 类，这是所有注解处理器的基类
+@AutoService(Processor.class)
+@SupportedAnnotationTypes("io.github.thirty30ww.annotation.DefaultValue")
+@SupportedSourceVersion(SourceVersion.RELEASE_17)
+public class DefaultValueProcessor extends AbstractProcessor {
 
-    private Messager messager;  // 用于在编译期间输出消息（错误、警告、信息等）
-    private Filer filer;    // 用于创建新的源文件或资源文件
+    private Messager messager;
+    private Trees trees;
+    private ASTOperator astOperator;
+    private ParameterAnalyzer parameterAnalyzer;
+    private MethodGenerator methodGenerator;
 
     /**
      * 初始化注解处理器，获取必要的工具和环境。
-     *
-     * @param processingEnv 提供了与编译器交互的环境，如消息打印、文件操作等。
      */
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
-        super.init(processingEnv);
-        this.messager = processingEnv.getMessager();    // 用来打印编译期消息
-        this.filer = processingEnv.getFiler();          // 用来创建新的源文件
+        super.init(processingEnv);  // 初始化父类，获取必要的工具和环境
+
+        ModuleAccessor.openJdkCompiler();     // 在初始化时动态添加模块访问权限
+
+        this.messager = processingEnv.getMessager();
+        this.trees = Trees.instance(processingEnv);
+        
+        // 获取 Javac 的内部上下文
+        Context context = ((JavacProcessingEnvironment) processingEnv).getContext();
+        
+        // 初始化工具类
+        this.astOperator = new ASTOperator(context);
+        this.parameterAnalyzer = new ParameterAnalyzer();
+        this.methodGenerator = new MethodGenerator(astOperator.getTreeMaker(), astOperator.getNames());
+        
+        // 使用 Messager 在编译时输出日志，提示注解处理器已初始化
+        messager.printMessage(Diagnostic.Kind.NOTE, "【DefaultValue】注解处理器已初始化");
     }
 
     /**
-     * 处理注解，生成新的源文件。
+     * 处理注解，直接在原类的 AST 中添加重载方法。
      *
      * @param annotations 被支持的注解类型集合。
      * @param roundEnv    提供了当前和之前的注解处理环境，用于查询被注解的元素。
@@ -47,163 +74,134 @@ public class DefaultValueProcessor extends AbstractProcessor {  // 继承 Abstra
      */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        // 遍历所有支持的注解类型（这里只有一个：DefaultValue）
-        for (TypeElement annotation : annotations) {
-            // 获取所有被 @DefaultValue 标注的元素
-            Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(annotation);
+        // 检查是否是最后一轮处理，如果是则返回 false，后续处理器不应继续处理
+        if (roundEnv.processingOver()) {
+            return false;
+        }
 
-            // 按类分组处理（使用 Set 去重：同一方法若有多个参数带注解，避免重复）
+        // 按类分组处理
+        Map<TypeElement, Set<ExecutableElement>> classMethods = groupMethodsByClass(roundEnv);
+
+        // 为每个类添加重载方法
+        for (Map.Entry<TypeElement, Set<ExecutableElement>> entry : classMethods.entrySet()) {
+            processClass(entry.getKey(), entry.getValue());
+        }
+
+        return true;
+    }
+
+    /**
+     * 按类分组处理方法
+     */
+    private Map<TypeElement, Set<ExecutableElement>> groupMethodsByClass(RoundEnvironment roundEnv) {
             Map<TypeElement, Set<ExecutableElement>> classMethods = new HashMap<>();
 
-            // 遍历这些元素，筛选出参数元素
-            for (Element element : elements) {
-                // 只处理参数上的注解，忽略其他位置的注解
+        for (Element element : roundEnv.getElementsAnnotatedWith(DefaultValue.class)) {
                 if (element.getKind() == ElementKind.PARAMETER) {
-                    // 找到参数所在的方法和类
-                    Element enclosingElement = element.getEnclosingElement();   // 获取参数所在的方法元素
-                    if (enclosingElement instanceof ExecutableElement method) { // 确保是方法元素
-                        TypeElement classElement = (TypeElement) method.getEnclosingElement();   // 获取方法所在的类元素
-
-                        // 按类分组存储方法
-                        // 确保每个类的方法集合是 LinkedHashSet，保持插入顺序
+                Element enclosingElement = element.getEnclosingElement();
+                if (enclosingElement instanceof ExecutableElement method) {
+                    TypeElement classElement = (TypeElement) method.getEnclosingElement();
                         classMethods.computeIfAbsent(classElement, k -> new LinkedHashSet<>())
                                 .add(method);
                     }
                 }
             }
-            // 遍历每个类及其方法集合，为每个类生成重载方法
-            for (Map.Entry<TypeElement, Set<ExecutableElement>> entry : classMethods.entrySet()) {
-                try {
-                    // 为当前类生成重载方法集合
-                    generateOverloadedMethods(entry.getKey(), entry.getValue());
-                } catch (IOException e) {
-                    messager.printMessage(Diagnostic.Kind.ERROR,
-                            "Failed to generate code: " + e.getMessage());
-                }
-            }
-        }
-        return true;
+
+        return classMethods;
     }
 
     /**
-     * 为给定类生成一个派生类，并在其中为包含 @DefaultValue 参数的方法生成“省略默认参数”的重载。
+     * 处理单个类，为其中的方法添加重载版本
      *
-     * @param classElement 包含默认参数方法的类。
-     * @param methods      该类中所有包含默认参数的方法。
+     * @param classElement 要处理的类元素（TypeElement）
+     * @param methods      该类中所有包含 @DefaultValue 注解的方法（ExecutableElement）
      */
-    private void generateOverloadedMethods(TypeElement classElement,
-                                           Collection<ExecutableElement> methods) throws IOException {
-        // 提取类的包名和类名
-        String packageName = getPackageName(classElement);
-        String className = classElement.getSimpleName().toString();
-        String generatedClassName = className + "Overloaded";
-
-        // 使用 filer 创建新的 Java 源文件
-        JavaFileObject builderFile = filer.createSourceFile(
-                packageName + "." + generatedClassName);
-
-        // 写入新源文件的内容
-        try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
-            // 生成类文件头部（包声明 + 类声明）
-            String classHeader = CodeGenerationUtils.generateClassHeader(
-                packageName, 
-                generatedClassName, 
-                className, 
-                "自动生成的重载方法类：继承原类，便于直接调用原始实现"
-            );
-            out.println(classHeader);
-            out.println();
-
-            // 为每个方法生成重载版本
+    private void processClass(TypeElement classElement, Set<ExecutableElement> methods) {
+        try {
+            // 获取类的语法树
+            var treePath = trees.getPath(classElement);
+            var compilationUnit = (JCTree.JCCompilationUnit) treePath.getCompilationUnit();
+            var classTree = (JCTree.JCClassDecl) treePath.getLeaf();
+            
+            // 设置 TreeMaker 的位置，避免 IllegalArgumentException
+            astOperator.getTreeMaker().pos = classTree.pos;
+            
+            // 收集需要生成的重载方法
+            ListBuffer<JCTree.JCMethodDecl> newMethods = new ListBuffer<>();
+            
             for (ExecutableElement method : methods) {
-                generateOverloadedMethod(out, method, classElement);
+                generateOverloadsForMethod(method, classTree, newMethods);
             }
-
-            out.println("}");
+            
+            // 将新方法添加到类定义中
+            if (!newMethods.isEmpty()) {
+                // 将新方法逐个添加到类的成员列表中
+                for (JCTree.JCMethodDecl method : newMethods) {
+                    classTree.defs = classTree.defs.append(method);
+                }
+                messager.printMessage(Diagnostic.Kind.NOTE,
+                        "【DefaultValue】为类 " + classElement.getSimpleName() + 
+                        " 生成了 " + newMethods.size() + " 个重载方法");
+            }
+            
+        } catch (Exception e) {
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    "处理类 " + classElement.getSimpleName() + " 时出错: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     /**
-     * 为单个方法生成“省略带默认值参数”的重载版本。
-     * <p>
-     * 例如：<code>threeArgs(String a, @DefaultValue("B") String b, @DefaultValue("C") String c)</code>
-     * <p>
-     * 会生成：<code>threeArgs(String a, String b) => threeArgs(a, b, "C")</code>
-     * <p>
-     * 以及：<code>threeArgs(String a) => threeArgs(a, "B", "C")</code>
-     * <p>
-     * 注意：如果方法有多个连续的默认参数，会生成多个重载版本。只支持省略末尾的默认参数。
-     * @param out          用于写入新源文件内容的打印写入器。
-     * @param method       包含默认参数的方法。
-     * @param classElement 该方法所属的类。
+     * 为单个方法生成重载版本
+     *
+     * @param method       要生成重载方法的原始方法
+     * @param classTree    类的语法树
+     * @param newMethods   用于存储新生成的重载方法的列表
      */
-    private void generateOverloadedMethod(PrintWriter out, ExecutableElement method,
-                                          TypeElement classElement) {
-        // 提取方法名和参数列表
-        String methodName = method.getSimpleName().toString();
-        List<? extends VariableElement> parameters = method.getParameters();
-
-        // 记录这些参数的索引位置和默认值
-        List<Integer> defaultIdxs = new ArrayList<>();
-        Map<Integer, String> defaultValueMap = new HashMap<>();
-        // 遍历所有参数，找出带有 @DefaultValue 注解的参数
-        for (int i = 0; i < parameters.size(); i++) {
-            // 检查当前参数是否带有 @DefaultValue 注解
-            VariableElement param = parameters.get(i);
-            DefaultValue annotation = param.getAnnotation(DefaultValue.class);
-
-            // 如果有注解，记录参数索引和默认值
-            if (annotation != null) {
-                String paramType = param.asType().toString();
-                // 验证参数类型是否支持
-                if (!TypeConversionUtils.isSupportedType(paramType)) {
-                    messager.printMessage(Diagnostic.Kind.ERROR,
-                            "Unsupported parameter type '" + paramType + "' for @DefaultValue annotation. " +
-                                    "Supported types: " + TypeConversionUtils.getSupportedTypesDescription(),
-                            param);
-                    return; // 跳过这个方法的处理
-                }
-
-                defaultIdxs.add(i);
-                defaultValueMap.put(i, annotation.value());
-            }
+    private void generateOverloadsForMethod(ExecutableElement method, 
+                                           JCTree.JCClassDecl classTree,
+                                           ListBuffer<JCTree.JCMethodDecl> newMethods) {
+        // 获取方法的 AST 节点
+        JCTree.JCMethodDecl methodTree = astOperator.findMethodTree(classTree, method);
+        if (methodTree == null) {
+            messager.printMessage(Diagnostic.Kind.WARNING, 
+                    "找不到方法: " + method.getSimpleName(), method);
+            return;
         }
-
-        // 如果没有找到带注解的参数，直接返回
-        if (defaultIdxs.isEmpty()) {
-            return; // 没有找到带注解的参数
-        }
-
-        // 提取末尾连续的默认参数
-        List<Integer> trailing = CodeGenerationUtils.extractTrailingDefaultParameters(defaultIdxs, parameters.size());
         
-        if (trailing.isEmpty()) {
-            messager.printMessage(Diagnostic.Kind.WARNING,
-                    "Only trailing @DefaultValue parameters are supported for now", method);
+        // 分析参数
+        ParameterAnalyzer.Result analysisResult;
+        try {
+            analysisResult = parameterAnalyzer.analyzeParameters(method);
+        } catch (IllegalArgumentException e) {
+            messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage(), method);
+                    return;
+        }
+
+        if (!analysisResult.hasDefaults()) {
             return;
         }
 
-        // 生成 m 条重载（省略末尾 1..m 个默认参数）
-        for (int drop = 1; drop <= trailing.size(); drop++) {
-            out.println("    // 自动生成的重载方法（省略末尾 " + drop + " 个默认参数）");
+        if (!analysisResult.hasTrailingDefaults()) {
+            messager.printMessage(Diagnostic.Kind.WARNING,
+                    "目前只支持末尾连续的 @DefaultValue 参数", method);
+            return;
+        }
+
+        // 为每个可能的省略组合生成重载方法
+        java.util.List<Integer> trailingDefaults = analysisResult.trailingDefaults();
+        for (int drop = 1; drop <= trailingDefaults.size(); drop++) {
+            // 检查是否已存在相同签名的方法
+            int newParamCount = method.getParameters().size() - drop;
+            if (astOperator.methodExists(classTree, method.getSimpleName().toString(),
+                           methodTree, newParamCount)) {
+                continue;  // 静默跳过已存在的方法
+            }
             
-            // 生成方法签名
-            String methodSignature = CodeGenerationUtils.generateMethodSignature(method, parameters, drop);
-            out.println(methodSignature);
-            
-            // 生成方法体
-            String methodBody = CodeGenerationUtils.generateMethodBody(method, parameters, defaultValueMap, drop);
-            out.println(methodBody);
-            
-            out.println("    }");
-            out.println();
+            // 创建新的重载方法
+            JCTree.JCMethodDecl overloadMethod = methodGenerator.createOverloadMethod(
+                    methodTree, method.getParameters(), analysisResult.defaultValueMap(), drop);
+            newMethods.append(overloadMethod);
         }
     }
-
-
-    /** 获取类的包名 */
-    private String getPackageName(TypeElement classElement) {
-        return processingEnv.getElementUtils().getPackageOf(classElement).toString();
-    }
-
 }
