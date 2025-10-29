@@ -27,8 +27,18 @@ import java.util.Set;
 /**
  * {@link DefaultValue} 注解处理器
  * <p>
- * - 使用 Javac Tree API 直接在原类中添加重载方法。
- * - 为每个包含注解的方法添加一个重载方法，包含默认参数值。
+ * 使用 Javac Tree API 直接在原类中添加重载方法，为带 @DefaultValue 注解的方法生成省略默认参数的重载版本。
+ * <p>
+ * 示例：
+ * <pre>
+ * {@code
+ * // 原始方法
+ * void query(String sql, @DefaultValue("10") int pageSize) { }
+ * 
+ * // 自动生成
+ * void query(String sql) { query(sql, 10); }
+ * }
+ * </pre>
  */
 @AutoService(Processor.class)
 @SupportedAnnotationTypes("io.github.thirty30ww.annotation.DefaultValue")
@@ -42,7 +52,7 @@ public class DefaultValueProcessor extends AbstractProcessor {
     private MethodGenerator methodGenerator;
 
     /**
-     * 初始化注解处理器，获取必要的工具和环境。
+     * 初始化注解处理器，获取必要的工具和环境
      */
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -66,11 +76,11 @@ public class DefaultValueProcessor extends AbstractProcessor {
     }
 
     /**
-     * 处理注解，直接在原类的 AST 中添加重载方法。
+     * 处理注解，直接在原类的 AST 中添加重载方法
      *
-     * @param annotations 被支持的注解类型集合。
-     * @param roundEnv    提供了当前和之前的注解处理环境，用于查询被注解的元素。
-     * @return 如果处理成功且后续处理器不应继续处理，则返回 true；否则返回 false。
+     * @param annotations 被支持的注解类型集合
+     * @param roundEnv 注解处理环境
+     * @return true 表示注解已被处理
      */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -91,7 +101,23 @@ public class DefaultValueProcessor extends AbstractProcessor {
     }
 
     /**
-     * 按类分组处理方法
+     * 按类分组，收集每个类中带 @DefaultValue 注解的方法
+     * <p>
+     * 示例：
+     * <pre>
+     * {@code
+     * class UserService {
+     *     void save(@DefaultValue("admin") String name) { }
+     * }
+     * class OrderService {
+     *     void create(@DefaultValue("1") int count) { }
+     * }
+     * // 返回：{ UserService -> [save], OrderService -> [create] }
+     * }
+     * </pre>
+     *
+     * @param roundEnv 注解处理环境
+     * @return 类元素到方法集合的映射
      */
     private Map<TypeElement, Set<ExecutableElement>> groupMethodsByClass(RoundEnvironment roundEnv) {
             Map<TypeElement, Set<ExecutableElement>> classMethods = new HashMap<>();
@@ -112,9 +138,11 @@ public class DefaultValueProcessor extends AbstractProcessor {
 
     /**
      * 处理单个类，为其中的方法添加重载版本
+     * <p>
+     * 将生成的重载方法直接添加到类的 AST 中。
      *
-     * @param classElement 要处理的类元素（TypeElement）
-     * @param methods      该类中所有包含 @DefaultValue 注解的方法（ExecutableElement）
+     * @param classElement 要处理的类元素
+     * @param methods 该类中所有包含 @DefaultValue 注解的方法
      */
     private void processClass(TypeElement classElement, Set<ExecutableElement> methods) {
         try {
@@ -128,7 +156,8 @@ public class DefaultValueProcessor extends AbstractProcessor {
             
             // 收集需要生成的重载方法
             ListBuffer<JCTree.JCMethodDecl> newMethods = new ListBuffer<>();
-            
+
+            // 为每个方法生成重载版本
             for (ExecutableElement method : methods) {
                 generateOverloadsForMethod(method, classTree, newMethods);
             }
@@ -140,7 +169,7 @@ public class DefaultValueProcessor extends AbstractProcessor {
                     classTree.defs = classTree.defs.append(method);
                 }
                 messager.printMessage(Diagnostic.Kind.NOTE,
-                        "【DefaultValue】为类 " + classElement.getSimpleName() + 
+                        "【DefaultValue】为类 " + classElement.getSimpleName() +
                         " 生成了 " + newMethods.size() + " 个重载方法");
             }
             
@@ -153,10 +182,12 @@ public class DefaultValueProcessor extends AbstractProcessor {
 
     /**
      * 为单个方法生成重载版本
+     * <p>
+     * 分析参数并生成所有可能的重载组合。
      *
-     * @param method       要生成重载方法的原始方法
-     * @param classTree    类的语法树
-     * @param newMethods   用于存储新生成的重载方法的列表
+     * @param method 要生成重载方法的原始方法
+     * @param classTree 类的 AST 节点
+     * @param newMethods 用于存储新生成的重载方法的列表
      */
     private void generateOverloadsForMethod(ExecutableElement method, 
                                            JCTree.JCClassDecl classTree,
@@ -175,13 +206,15 @@ public class DefaultValueProcessor extends AbstractProcessor {
             analysisResult = parameterAnalyzer.analyzeParameters(method);
         } catch (IllegalArgumentException e) {
             messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage(), method);
-                    return;
+            return;
         }
 
+        // 检查是否有默认参数
         if (!analysisResult.hasDefaults()) {
             return;
         }
 
+        // 检查是否有末尾连续的默认参数
         if (!analysisResult.hasTrailingDefaults()) {
             messager.printMessage(Diagnostic.Kind.WARNING,
                     "目前只支持末尾连续的 @DefaultValue 参数", method);
@@ -189,7 +222,37 @@ public class DefaultValueProcessor extends AbstractProcessor {
         }
 
         // 为每个可能的省略组合生成重载方法
+        createOverloadVariants(method, methodTree, classTree, analysisResult, newMethods);
+    }
+    
+    /**
+     * 为每个可能的省略组合生成重载方法
+     * <p>
+     * 示例：
+     * <pre>
+     * {@code
+     * // 原始方法：foo(String a, @DefaultValue("1") int b, @DefaultValue("2") int c)
+     * // trailingDefaults = [1, 2]
+     * 
+     * // 生成两个重载：
+     * drop=1: foo(String a, int b) { foo(a, b, 2); }
+     * drop=2: foo(String a) { foo(a, 1, 2); }
+     * }
+     * </pre>
+     *
+     * @param method 原始方法元素
+     * @param methodTree 原始方法的 AST 节点
+     * @param classTree 类的 AST 节点
+     * @param analysisResult 参数分析结果
+     * @param newMethods 用于存储新生成的重载方法的列表
+     */
+    private void createOverloadVariants(ExecutableElement method,
+                                       JCTree.JCMethodDecl methodTree,
+                                       JCTree.JCClassDecl classTree,
+                                       ParameterAnalyzer.Result analysisResult,
+                                       ListBuffer<JCTree.JCMethodDecl> newMethods) {
         java.util.List<Integer> trailingDefaults = analysisResult.trailingDefaults();
+        
         for (int drop = 1; drop <= trailingDefaults.size(); drop++) {
             // 检查是否已存在相同签名的方法
             int newParamCount = method.getParameters().size() - drop;

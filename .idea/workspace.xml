@@ -5,23 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31b5210f-e60d-4e89-a984-6add75bab185" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mvnw" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mvnw.cmd" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/src/test/java/ASTTreeViewer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/src/test/java/ClassModifier.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/src/test/java/FieldCollector.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/src/test/java/GetterGenerator.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/src/test/java/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/src/test/java/MethodCallFinder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/src/test/java/MethodCounter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/annotations/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/annotations/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example/pom.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/example/src/main/java/io/github/thirty30ww/ExampleService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/example/src/test/java/Main.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/processor/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/processor/DefaultValueProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/processor/DefaultValueProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/processor/Permit.java" beforeDir="false" afterPath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/processor/Permit.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/ASTOperator.java" beforeDir="false" afterPath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/ASTOperator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/MethodGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/MethodGenerator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/ModuleAccessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/ModuleAccessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/ParameterAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/ParameterAnalyzer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/TypeConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/processor/src/main/java/io/github/thirty30ww/utils/TypeConverter.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,45 +47,45 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "JUnit.CalculatorTest.testAddOverload.executor": "Run",
-    "Maven.DefArgs [clean].executor": "Run",
-    "Maven.DefArgs [compile].executor": "Run",
-    "Maven.DefArgs [install,--projects...].executor": "Run",
-    "Maven.DefArgs [install].executor": "Run",
-    "Maven.DefArgs [package].executor": "Run",
-    "Maven.DefArgs [validate].executor": "Run",
-    "Maven.Main (1).executor": "Run",
-    "Maven.Main.executor": "Run",
-    "Maven.processor [clean].executor": "Run",
-    "Maven.processor [package].executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "deletionFromPopupRequiresConfirmation": "false",
-    "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "E:/code/DefArgs",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "模块",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "vue.rearranger.settings.migration": "true",
-    "应用程序.ASTStudy.executor": "Run",
-    "应用程序.ASTTreeViewer.executor": "Run",
-    "应用程序.ExploreASTNodes.executor": "Run",
-    "应用程序.FirstASTDemo.executor": "Run",
-    "应用程序.Main (1).executor": "Run",
-    "应用程序.Main.executor": "Run",
-    "应用程序.SimpleASTModification.executor": "Run",
-    "应用程序.io.github.thirty30ww.Main (1).executor": "Run",
-    "应用程序.io.github.thirty30ww.Main.executor": "Run"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;JUnit.CalculatorTest.testAddOverload.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.DefArgs [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.DefArgs [compile].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.DefArgs [install,--projects...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.DefArgs [install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.DefArgs [package].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.DefArgs [validate].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Main (1).executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.processor [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.processor [package].executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;deletionFromPopupRequiresConfirmation&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/code/DefArgs&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;,
+    &quot;应用程序.ASTStudy.executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.ASTTreeViewer.executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.ExploreASTNodes.executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.FirstASTDemo.executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.Main (1).executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.Main.executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.SimpleASTModification.executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.io.github.thirty30ww.Main (1).executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.io.github.thirty30ww.Main.executor&quot;: &quot;Run&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="E:\code\DefArgs" />
@@ -168,6 +158,9 @@
       <workItem from="1761649142645" duration="1829000" />
       <workItem from="1761651749608" duration="39000" />
       <workItem from="1761651858045" duration="606000" />
+      <workItem from="1761652478310" duration="6398000" />
+      <workItem from="1761703493530" duration="4886000" />
+      <workItem from="1761720044451" duration="10213000" />
     </task>
     <servers />
   </component>
