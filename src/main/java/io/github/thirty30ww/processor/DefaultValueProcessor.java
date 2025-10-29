@@ -60,11 +60,15 @@ public class DefaultValueProcessor extends AbstractProcessor {
 
         ModuleAccessor.openJdkCompiler();     // 在初始化时动态添加模块访问权限
 
-        this.messager = processingEnv.getMessager();
-        this.trees = Trees.instance(processingEnv);
+        // 解包 IntelliJ IDEA 包装的 ProcessingEnvironment（必须在使用前解包）
+        ProcessingEnvironment unwrappedEnv = Unwrap.processingEnv(processingEnv);
+        
+        // 使用解包后的环境初始化工具
+        this.messager = unwrappedEnv.getMessager();
+        this.trees = Trees.instance(unwrappedEnv);
         
         // 获取 Javac 的内部上下文
-        Context context = ((JavacProcessingEnvironment) processingEnv).getContext();
+        Context context = ((JavacProcessingEnvironment) unwrappedEnv).getContext();
         
         // 初始化工具类
         this.astOperator = new ASTOperator(context);
