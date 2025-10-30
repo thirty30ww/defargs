@@ -1,4 +1,4 @@
-package io.github.thirty30ww.annotation;
+package io.github.thirty30ww.defargs.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

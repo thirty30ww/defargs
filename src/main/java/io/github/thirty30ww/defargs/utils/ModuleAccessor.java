@@ -1,6 +1,6 @@
-package io.github.thirty30ww.utils;
+package io.github.thirty30ww.defargs.utils;
 
-import io.github.thirty30ww.processor.Permit;
+import io.github.thirty30ww.defargs.processor.Permit;
 
 /**
  * 模块访问权限工具类

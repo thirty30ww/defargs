@@ -1,4 +1,4 @@
-package io.github.thirty30ww.utils;
+package io.github.thirty30ww.defargs.utils;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;

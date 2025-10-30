@@ -1,4 +1,4 @@
-package io.github.thirty30ww.processor;
+package io.github.thirty30ww.defargs.processor;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import java.lang.reflect.Method;

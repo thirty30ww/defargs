@@ -1,6 +1,6 @@
-package io.github.thirty30ww.utils;
+package io.github.thirty30ww.defargs.utils;
 
-import io.github.thirty30ww.annotation.DefaultValue;
+import io.github.thirty30ww.defargs.annotation.DefaultValue;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;

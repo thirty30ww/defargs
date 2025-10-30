@@ -1,4 +1,4 @@
-package io.github.thirty30ww.processor;
+package io.github.thirty30ww.defargs.processor;
 
 import com.google.auto.service.AutoService;
 import com.sun.source.util.Trees;
@@ -6,11 +6,11 @@ import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
-import io.github.thirty30ww.annotation.DefaultValue;
-import io.github.thirty30ww.utils.ASTOperator;
-import io.github.thirty30ww.utils.MethodGenerator;
-import io.github.thirty30ww.utils.ParameterAnalyzer;
-import io.github.thirty30ww.utils.ModuleAccessor;
+import io.github.thirty30ww.defargs.annotation.DefaultValue;
+import io.github.thirty30ww.defargs.utils.ASTOperator;
+import io.github.thirty30ww.defargs.utils.MethodGenerator;
+import io.github.thirty30ww.defargs.utils.ParameterAnalyzer;
+import io.github.thirty30ww.defargs.utils.ModuleAccessor;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -41,7 +41,7 @@ import java.util.Set;
  * </pre>
  */
 @AutoService(Processor.class)
-@SupportedAnnotationTypes("io.github.thirty30ww.annotation.DefaultValue")
+@SupportedAnnotationTypes("io.github.thirty30ww.defargs.annotation.DefaultValue")
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class DefaultValueProcessor extends AbstractProcessor {
 
