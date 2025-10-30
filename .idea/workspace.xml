@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="31b5210f-e60d-4e89-a984-6add75bab185" name="更改" comment="" />
+    <list default="true" id="31b5210f-e60d-4e89-a984-6add75bab185" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -64,8 +66,9 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;deletionFromPopupRequiresConfirmation&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/code/defargs&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/code/defargs-intellij-plugin/build/distributions/defargs-intellij-plugin-1.0-SNAPSHOT.zip&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -145,6 +148,13 @@
       <workItem from="1761808564173" duration="10000" />
       <workItem from="1761808577853" duration="24000" />
       <workItem from="1761808641715" duration="2000" />
+      <workItem from="1761809061675" duration="2694000" />
+      <workItem from="1761812551110" duration="125000" />
+      <workItem from="1761812696632" duration="3379000" />
+      <workItem from="1761821360095" duration="67000" />
+      <workItem from="1761821437525" duration="122000" />
+      <workItem from="1761821571950" duration="692000" />
+      <workItem from="1761824782470" duration="3588000" />
     </task>
     <servers />
   </component>

@@ -6,8 +6,38 @@
 
     <groupId>io.github.thirty30ww</groupId>
     <artifactId>defargs</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
+
+    <!-- 必需的项目信息 -->
+    <name>DefArgs</name>
+    <description>基于 Javac Tree API 的编译期注解处理器，通过 @DefaultValue 注解实现 Java 方法的默认参数功能。编译时自动生成重载方法，让调用者可以省略带默认值的参数，简化代码编写。</description>
+    <url>https://github.com/thirty30ww/defargs</url>
+
+    <!-- 许可证信息 -->
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <!-- 开发者信息 -->
+    <developers>
+        <developer>
+            <id>thirty30ww</id>
+            <name>Merrick</name>
+            <email>2834379272@qq.com</email>
+        </developer>
+    </developers>
+
+    <!-- SCM 信息 -->
+    <scm>
+        <connection>scm:git:git://github.com/thirty30ww/defargs.git</connection>
+        <developerConnection>scm:git:ssh://github.com:thirty30ww/defargs.git</developerConnection>
+        <url>https://github.com/thirty30ww/defargs/tree/main</url>
+    </scm>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -25,9 +55,17 @@
         </dependency>
     </dependencies>
 
+    <!-- 发布配置 - 使用新的 Central Portal -->
+    <distributionManagement>
+        <repository>
+            <id>central</id>
+            <url>https://central.sonatype.com/api/v1/publisher</url>
+        </repository>
+    </distributionManagement>
+
     <build>
         <plugins>
-            <!--           配置注解处理器            -->
+            <!-- 编译插件（必需）-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -51,6 +89,97 @@
                     </compilerArgs>
                 </configuration>
             </plugin>
+
+            <!-- Central Publishing 插件（新版 Maven Central）-->
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.4.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <tokenAuth>true</tokenAuth>
+                    <autoPublish>true</autoPublish>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <!-- 发布配置文件（仅在发布时激活）-->
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <!-- 生成源码 jar（Maven Central 必需）-->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.3.0</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- 生成 Javadoc jar（Maven Central 必需）-->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.6.0</version>
+                        <configuration>
+                            <!-- 忽略 Javadoc 错误，确保能成功生成 jar -->
+                            <doclint>none</doclint>
+                            <failOnError>false</failOnError>
+                            <quiet>true</quiet>
+                            <additionalOptions>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</additionalOption>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</additionalOption>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</additionalOption>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</additionalOption>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</additionalOption>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</additionalOption>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</additionalOption>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</additionalOption>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</additionalOption>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</additionalOption>
+                                <additionalOption>--add-exports=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</additionalOption>
+                            </additionalOptions>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- GPG 签名插件（Maven Central 必需）-->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <configuration>
+                            <executable>C:\Program Files (x86)\gnupg\bin\gpg.exe</executable>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
