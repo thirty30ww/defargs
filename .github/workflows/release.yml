@@ -1,4 +1,4 @@
-name: Create Release
+name: Create Release and Publish to Maven Central
 
 on:
   push:
@@ -25,18 +25,60 @@ jobs:
       - name: Grant execute permission for Maven Wrapper
         run: chmod +x mvnw
       
-      - name: Build with Maven
-        run: ./mvnw clean package
+      # 导入 GPG 密钥
+      - name: Import GPG key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode | gpg --batch --import
+          gpg --list-secret-keys --keyid-format LONG
+      
+      # 配置 Maven settings.xml
+      - name: Set up Maven settings
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml << 'EOF'
+          <settings>
+            <servers>
+              <server>
+                <id>central</id>
+                <username>${{ secrets.CENTRAL_TOKEN_USERNAME }}</username>
+                <password>${{ secrets.CENTRAL_TOKEN_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+      
+      # 发布到 Maven Central
+      - name: Deploy to Maven Central
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          ./mvnw clean deploy -Prelease \
+            -Dgpg.passphrase="${GPG_PASSPHRASE}" \
+            -Dgpg.executable=gpg \
+            --batch-mode --no-transfer-progress
       
       - name: Get version from tag
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       
+      # 创建 GitHub Release
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v1
         with:
           files: ./target/defargs-*.jar
           name: Release ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## Maven 依赖
+            
+            ```xml
+            <dependency>
+                <groupId>io.github.thirty30ww</groupId>
+                <artifactId>defargs</artifactId>
+                <version>${{ steps.get_version.outputs.VERSION }}</version>
+            </dependency>
+            ```
+            
+            Maven Central 同步通常需要 10-30 分钟。
           draft: false
           prerelease: false
         env:

@@ -6,7 +6,7 @@
 
     <groupId>io.github.thirty30ww</groupId>
     <artifactId>defargs</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <!-- 必需的项目信息 -->
@@ -166,7 +166,11 @@
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>3.1.0</version>
                         <configuration>
-                            <executable>C:\Program Files (x86)\gnupg\bin\gpg.exe</executable>
+                            <!-- 支持 CI 环境的 GPG 配置 -->
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
                         </configuration>
                         <executions>
                             <execution>

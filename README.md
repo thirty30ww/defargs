@@ -10,7 +10,7 @@
 <dependency>
     <groupId>io.github.thirty30ww</groupId>
     <artifactId>defargs</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
