@@ -6,7 +6,7 @@
 
     <groupId>io.github.thirty30ww</groupId>
     <artifactId>defargs</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
 
     <!-- 必需的项目信息 -->

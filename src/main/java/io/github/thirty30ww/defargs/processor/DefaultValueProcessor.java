@@ -8,6 +8,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import io.github.thirty30ww.defargs.annotation.DefaultValue;
 import io.github.thirty30ww.defargs.utils.ASTOperator;
+import io.github.thirty30ww.defargs.utils.MessageBuilder;
 import io.github.thirty30ww.defargs.utils.MethodGenerator;
 import io.github.thirty30ww.defargs.utils.ParameterAnalyzer;
 import io.github.thirty30ww.defargs.utils.ModuleAccessor;
@@ -76,7 +77,7 @@ public class DefaultValueProcessor extends AbstractProcessor {
         this.methodGenerator = new MethodGenerator(astOperator.getTreeMaker(), astOperator.getNames());
         
         // 使用 Messager 在编译时输出日志，提示注解处理器已初始化
-        messager.printMessage(Diagnostic.Kind.NOTE, "【DefaultValue】注解处理器已初始化");
+        messager.printMessage(Diagnostic.Kind.NOTE, MessageBuilder.init());
     }
 
     /**
@@ -173,13 +174,12 @@ public class DefaultValueProcessor extends AbstractProcessor {
                     classTree.defs = classTree.defs.append(method);
                 }
                 messager.printMessage(Diagnostic.Kind.NOTE,
-                        "【DefaultValue】为类 " + classElement.getSimpleName() +
-                        " 生成了 " + newMethods.size() + " 个重载方法");
+                        MessageBuilder.generatedMethods(classElement.getSimpleName().toString(), newMethods.size()));
             }
             
         } catch (Exception e) {
             messager.printMessage(Diagnostic.Kind.ERROR,
-                    "处理类 " + classElement.getSimpleName() + " 时出错: " + e.getMessage());
+                    MessageBuilder.processError(classElement.getSimpleName().toString(), e.getMessage()));
             e.printStackTrace();
         }
     }
@@ -200,7 +200,7 @@ public class DefaultValueProcessor extends AbstractProcessor {
         JCTree.JCMethodDecl methodTree = astOperator.findMethodTree(classTree, method);
         if (methodTree == null) {
             messager.printMessage(Diagnostic.Kind.WARNING, 
-                    "找不到方法: " + method.getSimpleName(), method);
+                    MessageBuilder.methodNotFound(method.getSimpleName().toString()), method);
             return;
         }
         
@@ -221,7 +221,7 @@ public class DefaultValueProcessor extends AbstractProcessor {
         // 检查是否有末尾连续的默认参数
         if (!analysisResult.hasTrailingDefaults()) {
             messager.printMessage(Diagnostic.Kind.WARNING,
-                    "目前只支持末尾连续的 @DefaultValue 参数", method);
+                    MessageBuilder.onlyTrailingDefaults(), method);
             return;
         }
 
@@ -262,7 +262,10 @@ public class DefaultValueProcessor extends AbstractProcessor {
             int newParamCount = method.getParameters().size() - drop;
             if (astOperator.methodExists(classTree, method.getSimpleName().toString(),
                            methodTree, newParamCount)) {
-                continue;  // 静默跳过已存在的方法
+                // 报告编译错误：存在冲突的重载方法
+                messager.printMessage(Diagnostic.Kind.ERROR,
+                        MessageBuilder.duplicateMethod(method, newParamCount), method);
+                return;  // 停止处理该方法
             }
             
             // 创建新的重载方法
