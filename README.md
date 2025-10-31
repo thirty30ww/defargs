@@ -1,16 +1,19 @@
 # DefArgs
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.thirty30ww/defargs.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.thirty30ww/defargs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 一个 Java 注解处理器，通过 `@DefaultValue` 注解为方法参数提供默认值支持。
 
 ## 快速开始
 
-在 Maven 项目中添加依赖：
+在 Maven 项目中添加依赖（[查看最新版本](https://central.sonatype.com/artifact/io.github.thirty30ww/defargs)）：
 
 ```xml
 <dependency>
     <groupId>io.github.thirty30ww</groupId>
     <artifactId>defargs</artifactId>
-    <version>1.0.1</version>
+    <version>LATEST</version> <!-- 请替换为上方链接或者徽章显示的最新版本 -->
 </dependency>
 ```
 
@@ -60,7 +63,7 @@ service.createUser("Charlie", 30, false); // 不使用默认值
 
 ## 注意事项
 
-当前版本仅支持**末尾连续**的默认参数。例如：
+### 1. 默认参数必须从右向左连续
 
 ```java
 // 支持
@@ -68,6 +71,25 @@ void method(int a, @DefaultValue("1") int b, @DefaultValue("2") int c)
 
 // 不支持
 void method(@DefaultValue("1") int a, int b, @DefaultValue("2") int c)
+```
+
+### 2. 不要手动定义重载方法
+
+如果手动定义了与生成方法签名相同的重载方法，编译时会报错：
+
+```java
+public int test(int a, @DefaultValue("2") int b) {
+    return a + b;
+}
+
+public int test(int a) {  // 编译错误：此方法会自动生成
+    return a + 1;
+}
+```
+
+编译错误信息：
+```
+DefaultValue: 已在类 com.example.MyClass 中定义了方法 test(int)
 ```
 
 ## IntelliJ IDEA 支持
