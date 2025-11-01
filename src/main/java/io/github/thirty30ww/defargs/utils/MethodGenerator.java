@@ -60,10 +60,13 @@ public class MethodGenerator {
      * // defaultValueMap: {1 -> "10", 2 -> "20"}
      * // dropCount: 2 （省略最后 2 个参数）
      * 
-     * // 生成：
+     * // 生成（普通类）：
      * public int calc(int a) {
      *     return calc(a, 10, 20);
      * }
+     * 
+     * // 生成（接口抽象方法）：
+     * int calc(int a);
      * }
      * </pre>
      *
@@ -83,8 +86,16 @@ public class MethodGenerator {
         // 第二步：创建新的参数列表（省略末尾 dropCount 个参数）
         ListBuffer<JCTree.JCVariableDecl> newParams = createNewParameters(originalMethod, parameters, dropCount);
         
-        // 第三步：创建方法体（调用原方法，补充默认值）
-        JCTree.JCBlock body = createMethodBody(originalMethod, parameters, defaultValueMap, dropCount);
+        // 第三步：判断是否需要生成方法体
+        // 如果原方法是抽象方法（没有方法体），则生成的重载方法也应该是抽象方法
+        JCTree.JCBlock body = null;
+        
+        if (!isAbstractMethod(originalMethod)) {
+            // 有方法体的方法（具体类的方法或接口的default/static方法）
+            // 创建方法体（调用原方法，补充默认值）
+            body = createMethodBody(originalMethod, parameters, defaultValueMap, dropCount);
+        }
+        // 否则，抽象方法不生成方法体（body保持为null）
         
         // 第四步：组装成完整的方法声明
         return treeMaker.MethodDef(
@@ -94,9 +105,34 @@ public class MethodGenerator {
                 originalMethod.typarams,            // 泛型参数
                 newParams.toList(),                 // 新的参数列表
                 originalMethod.thrown,              // 异常声明
-                body,                               // 方法体
+                body,                               // 方法体（抽象方法为null）
                 null                                // 默认值（方法没有默认值）
         );
+    }
+    
+    /**
+     * 判断方法是否是抽象方法
+     * <p>
+     * 抽象方法的特征：没有方法体（body == null）
+     * <p>
+     * 包括：
+     * <ul>
+     *   <li>接口的抽象方法</li>
+     *   <li>抽象类的抽象方法</li>
+     * </ul>
+     * 
+     * 不包括：
+     * <ul>
+     *   <li>普通类的方法（有方法体）</li>
+     *   <li>接口的 default 方法（有方法体）</li>
+     *   <li>接口的 static 方法（有方法体）</li>
+     * </ul>
+     *
+     * @param method 要检查的方法 AST 节点
+     * @return 如果是抽象方法返回 true，否则返回 false
+     */
+    private boolean isAbstractMethod(JCTree.JCMethodDecl method) {
+        return method.body == null;
     }
     
     /**
