@@ -1,3 +1,4 @@
+![header](src/main/resources/header.svg)
 # DefArgs
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.thirty30ww/defargs.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.thirty30ww/defargs)
