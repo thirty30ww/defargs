@@ -1,6 +1,8 @@
 package io.github.thirty30ww.defargs.utils;
 
 import io.github.thirty30ww.defargs.annotation.DefaultValue;
+import io.github.thirty30ww.defargs.annotation.Omittable;
+import io.github.thirty30ww.defargs.message.ErrorMessages;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
@@ -9,17 +11,27 @@ import java.util.*;
 /**
  * 参数分析工具类
  * <p>
- * 分析方法参数，识别带 @DefaultValue 注解的参数，区分末尾连续的默认参数（可生成重载）和中间的默认参数（不可生成重载）。
+ * 分析方法参数，识别带 @DefaultValue 或 @Omittable 注解的参数，区分末尾连续的可省略参数（可生成重载）和中间的可省略参数（不可生成重载）。
+ * <p>
+ * 注解区别：
+ * <ul>
+ *   <li>{@code @DefaultValue}：用于具体方法，生成带默认值的重载方法</li>
+ *   <li>{@code @Omittable}：用于抽象方法，生成抽象的重载方法</li>
+ * </ul>
  * <p>
  * 示例：
  * <pre>
  * {@code
- * // 可以生成重载（末尾连续）
+ * // 具体方法：可以生成重载（末尾连续）
  * void foo(String a, @DefaultValue("1") int b, @DefaultValue("2") int c)
  * -> 生成：foo(String a, int b) { foo(a, b, 2); }
  * 
- * // 不能生成重载（中间有默认值）
- * void bar(String a, @DefaultValue("1") int b, String c)
+ * // 抽象方法：生成抽象重载
+ * abstract void bar(String a, @Omittable int b, @Omittable int c);
+ * -> 生成：abstract void bar(String a, int b);
+ * 
+ * // 不能生成重载（中间有可省略参数）
+ * void baz(String a, @DefaultValue("1") int b, String c)
  * -> b 的值无法确定
  * }
  * </pre>
@@ -56,7 +68,7 @@ public class ParameterAnalyzer {
     }
 
     /**
-     * 分析方法的参数，找出带默认值的参数，例如
+     * 分析方法的参数，找出带 @DefaultValue 或 @Omittable 注解的参数，例如
      * <p>
      * <pre>
      * {@code
@@ -72,14 +84,15 @@ public class ParameterAnalyzer {
      * {@code
      * Result(
      *     defaultIdxs=[1, 2],
-     *     defaultValueMap={1=8080, 2=false},
-     *     trailingDefaults=[2]
+     *     defaultValueMap={1="8080", 2="false"},
+     *     trailingDefaults=[1, 2]
      * )
      * }
      * </pre>
      *
      * @param method 要分析的方法元素
-     * @return 包含默认参数索引、默认参数值映射和末尾连续默认参数索引的结果记录类
+     * @return 包含可省略参数索引、默认参数值映射和末尾连续可省略参数索引的结果记录类
+     * @throws IllegalArgumentException 如果参数同时使用了 @DefaultValue 和 @Omittable，或参数类型不支持
      */
     public Result analyzeParameters(ExecutableElement method) {
         List<? extends VariableElement> parameters = method.getParameters();
@@ -87,25 +100,34 @@ public class ParameterAnalyzer {
         List<Integer> defaultIdxs = new ArrayList<>();
         Map<Integer, String> defaultValueMap = new HashMap<>();
 
-        // 遍历参数，找出带默认值的参数
+        // 遍历参数，找出带 @DefaultValue 或 @Omittable 注解的参数
         for (int i = 0; i < parameters.size(); i++) {
             VariableElement param = parameters.get(i);
-            DefaultValue annotation = param.getAnnotation(DefaultValue.class);
+            DefaultValue defaultValueAnnotation = param.getAnnotation(DefaultValue.class);
+            Omittable omittableAnnotation = param.getAnnotation(Omittable.class);
 
-            if (annotation != null) {
+            // 处理 @DefaultValue 注解
+            if (defaultValueAnnotation != null) {
                 String paramType = param.asType().toString();
                 // 检查参数类型是否支持默认值转换
                 if (!TypeConverter.isSupportedType(paramType)) {
                     throw new IllegalArgumentException(
-                            "不支持的参数类型 '" + paramType + "'。" +
-                            "支持的类型: " + TypeConverter.getSupportedTypesDescription());
+                            ErrorMessages.unsupportedParameterType(paramType, 
+                                    TypeConverter.getSupportedTypesDescription()));
                 }
                 defaultIdxs.add(i);
-                defaultValueMap.put(i, annotation.value());
+                defaultValueMap.put(i, defaultValueAnnotation.value());
+            }
+            
+            // 处理 @Omittable 注解
+            if (omittableAnnotation != null) {
+                defaultIdxs.add(i);
+                // @Omittable 不需要默认值，存储 null 作为标记
+                defaultValueMap.put(i, null);
             }
         }
 
-        // 提取末尾连续的默认参数
+        // 提取末尾连续的可省略参数
         List<Integer> trailingDefaults = extractTrailingDefaults(defaultIdxs, parameters.size());
 
         return new Result(defaultIdxs, defaultValueMap, trailingDefaults);

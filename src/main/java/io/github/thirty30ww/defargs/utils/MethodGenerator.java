@@ -285,6 +285,8 @@ public class MethodGenerator {
         }
         
         // 第二阶段：添加默认值参数（作为字面量）
+        // 注意：此方法只会在具体方法（非抽象方法）中调用
+        // 因此所有参数都应该有 @DefaultValue 注解（已在 AnnotationValidator 中验证）
         for (int i = keepCount; i < parameters.size(); i++) {
             String defaultValue = defaultValueMap.get(i);
             String paramType = parameters.get(i).asType().toString();

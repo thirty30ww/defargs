@@ -7,21 +7,16 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import io.github.thirty30ww.defargs.annotation.DefaultValue;
-import io.github.thirty30ww.defargs.utils.ASTOperator;
-import io.github.thirty30ww.defargs.utils.MessageBuilder;
-import io.github.thirty30ww.defargs.utils.MethodGenerator;
-import io.github.thirty30ww.defargs.utils.ParameterAnalyzer;
-import io.github.thirty30ww.defargs.utils.ModuleAccessor;
+import io.github.thirty30ww.defargs.message.ErrorMessages;
+import io.github.thirty30ww.defargs.message.InfoMessages;
+import io.github.thirty30ww.defargs.message.WarningMessages;
+import io.github.thirty30ww.defargs.utils.*;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,7 +37,10 @@ import java.util.Set;
  * </pre>
  */
 @AutoService(Processor.class)
-@SupportedAnnotationTypes("io.github.thirty30ww.defargs.annotation.DefaultValue")
+@SupportedAnnotationTypes({
+    "io.github.thirty30ww.defargs.annotation.DefaultValue",
+    "io.github.thirty30ww.defargs.annotation.Omittable"
+})
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class DefaultValueProcessor extends AbstractProcessor {
 
@@ -77,7 +75,7 @@ public class DefaultValueProcessor extends AbstractProcessor {
         this.methodGenerator = new MethodGenerator(astOperator.getTreeMaker(), astOperator.getNames());
         
         // 使用 Messager 在编译时输出日志，提示注解处理器已初始化
-        messager.printMessage(Diagnostic.Kind.NOTE, MessageBuilder.init());
+        messager.printMessage(Diagnostic.Kind.NOTE, InfoMessages.init());
     }
 
     /**
@@ -94,8 +92,8 @@ public class DefaultValueProcessor extends AbstractProcessor {
             return false;
         }
 
-        // 按类分组处理
-        Map<TypeElement, Set<ExecutableElement>> classMethods = groupMethodsByClass(roundEnv);
+        // 按类分组收集带注解的方法
+        Map<TypeElement, Set<ExecutableElement>> classMethods = AnnotationAnalyzer.collectAnnotatedMethods(roundEnv);
 
         // 为每个类添加重载方法
         for (Map.Entry<TypeElement, Set<ExecutableElement>> entry : classMethods.entrySet()) {
@@ -106,48 +104,12 @@ public class DefaultValueProcessor extends AbstractProcessor {
     }
 
     /**
-     * 按类分组，收集每个类中带 @DefaultValue 注解的方法
-     * <p>
-     * 示例：
-     * <pre>
-     * {@code
-     * class UserService {
-     *     void save(@DefaultValue("admin") String name) { }
-     * }
-     * class OrderService {
-     *     void create(@DefaultValue("1") int count) { }
-     * }
-     * // 返回：{ UserService -> [save], OrderService -> [create] }
-     * }
-     * </pre>
-     *
-     * @param roundEnv 注解处理环境
-     * @return 类元素到方法集合的映射
-     */
-    private Map<TypeElement, Set<ExecutableElement>> groupMethodsByClass(RoundEnvironment roundEnv) {
-            Map<TypeElement, Set<ExecutableElement>> classMethods = new HashMap<>();
-
-        for (Element element : roundEnv.getElementsAnnotatedWith(DefaultValue.class)) {
-                if (element.getKind() == ElementKind.PARAMETER) {
-                Element enclosingElement = element.getEnclosingElement();
-                if (enclosingElement instanceof ExecutableElement method) {
-                    TypeElement classElement = (TypeElement) method.getEnclosingElement();
-                        classMethods.computeIfAbsent(classElement, k -> new LinkedHashSet<>())
-                                .add(method);
-                    }
-                }
-            }
-
-        return classMethods;
-    }
-
-    /**
      * 处理单个类，为其中的方法添加重载版本
      * <p>
      * 将生成的重载方法直接添加到类的 AST 中。
      *
      * @param classElement 要处理的类元素
-     * @param methods 该类中所有包含 @DefaultValue 注解的方法
+     * @param methods 该类中所有包含 @DefaultValue 或 @Omittable 注解的方法
      */
     private void processClass(TypeElement classElement, Set<ExecutableElement> methods) {
         try {
@@ -174,12 +136,12 @@ public class DefaultValueProcessor extends AbstractProcessor {
                     classTree.defs = classTree.defs.append(method);
                 }
                 messager.printMessage(Diagnostic.Kind.NOTE,
-                        MessageBuilder.generatedMethods(classElement.getSimpleName().toString(), newMethods.size()));
+                        InfoMessages.generatedMethods(classElement.getSimpleName().toString(), newMethods.size()));
             }
             
         } catch (Exception e) {
             messager.printMessage(Diagnostic.Kind.ERROR,
-                    MessageBuilder.processError(classElement.getSimpleName().toString(), e.getMessage()));
+                    ErrorMessages.processError(classElement.getSimpleName().toString(), e.getMessage()));
             e.printStackTrace();
         }
     }
@@ -188,6 +150,11 @@ public class DefaultValueProcessor extends AbstractProcessor {
      * 为单个方法生成重载版本
      * <p>
      * 分析参数并生成所有可能的重载组合。
+     * 同时验证注解与方法类型的匹配：
+     * <ul>
+     *   <li>@DefaultValue 只能用于有方法体的方法（具体方法）</li>
+     *   <li>@Omittable 只能用于抽象方法</li>
+     * </ul>
      *
      * @param method 要生成重载方法的原始方法
      * @param classTree 类的 AST 节点
@@ -200,7 +167,15 @@ public class DefaultValueProcessor extends AbstractProcessor {
         JCTree.JCMethodDecl methodTree = astOperator.findMethodTree(classTree, method);
         if (methodTree == null) {
             messager.printMessage(Diagnostic.Kind.WARNING, 
-                    MessageBuilder.methodNotFound(method.getSimpleName().toString()), method);
+                    WarningMessages.methodNotFound(method.getSimpleName().toString()), method);
+            return;
+        }
+        
+        // 验证注解使用是否合法
+        try {
+            AnnotationAnalyzer.validateAnnotations(method, methodTree);
+        } catch (IllegalArgumentException e) {
+            messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage(), method);
             return;
         }
         
@@ -213,15 +188,15 @@ public class DefaultValueProcessor extends AbstractProcessor {
             return;
         }
 
-        // 检查是否有默认参数
+        // 检查是否有可省略参数
         if (!analysisResult.hasDefaults()) {
             return;
         }
 
-        // 检查是否有末尾连续的默认参数
+        // 检查是否有末尾连续的可省略参数
         if (!analysisResult.hasTrailingDefaults()) {
             messager.printMessage(Diagnostic.Kind.WARNING,
-                    MessageBuilder.onlyTrailingDefaults(), method);
+                    WarningMessages.onlyTrailingDefaults(), method);
             return;
         }
 
@@ -264,7 +239,7 @@ public class DefaultValueProcessor extends AbstractProcessor {
                            methodTree, newParamCount)) {
                 // 报告编译错误：存在冲突的重载方法
                 messager.printMessage(Diagnostic.Kind.ERROR,
-                        MessageBuilder.duplicateMethod(method, newParamCount), method);
+                        WarningMessages.duplicateMethod(method, newParamCount), method);
                 return;  // 停止处理该方法
             }
             
