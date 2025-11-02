@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="31b5210f-e60d-4e89-a984-6add75bab185" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/io/github/thirty30ww/defargs/processor/DefaultValueProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/io/github/thirty30ww/defargs/processor/DefaultValueProcessor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/io/github/thirty30ww/defargs/utils/MessageBuilder.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/io/github/thirty30ww/defargs/utils/MethodGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/io/github/thirty30ww/defargs/utils/MethodGenerator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/io/github/thirty30ww/defargs/utils/ParameterAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/io/github/thirty30ww/defargs/utils/ParameterAnalyzer.java" afterDir="false" />
-    </list>
+    <list default="true" id="31b5210f-e60d-4e89-a984-6add75bab185" name="更改" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -72,7 +66,7 @@
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/code/defargs/src/main/resources&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/code/defargs-intellij-plugin/build/distributions/defargs-intellij-plugin-1.0.4.zip&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -81,7 +75,7 @@
     &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.gutterIcons&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;,
     &quot;应用程序.ASTStudy.executor&quot;: &quot;Run&quot;,
     &quot;应用程序.ASTTreeViewer.executor&quot;: &quot;Run&quot;,
@@ -166,7 +160,12 @@
       <workItem from="1761977527849" duration="409000" />
       <workItem from="1761996673881" duration="2975000" />
       <workItem from="1762001502516" duration="5924000" />
-      <workItem from="1762049311745" duration="1211000" />
+      <workItem from="1762049311745" duration="1634000" />
+      <workItem from="1762052527448" duration="107000" />
+      <workItem from="1762052655074" duration="21000" />
+      <workItem from="1762068348104" duration="735000" />
+      <workItem from="1762069118106" duration="604000" />
+      <workItem from="1762081048579" duration="330000" />
     </task>
     <servers />
   </component>

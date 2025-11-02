@@ -137,7 +137,7 @@ void method(int a, @DefaultValue("1") int b, @DefaultValue("2") int c)
 void method(@DefaultValue("1") int a, int b, @DefaultValue("2") int c)
 ```
 
-### 3. 不要手动定义重载方法
+### 3. 不要手动定义冲突的重载方法
 
 如果手动定义了与生成方法签名相同的重载方法，编译时会报错：
 
@@ -155,6 +155,17 @@ public int test(int a) {  // 编译错误：此方法会自动生成
 ```
 【DefaultValue】 已在类 com.example.MyClass 中定义了方法 test(int)
 ```
+
+### 4. 支持的类型
+`@DefaultValue` 注解目前支持以下类型的默认值：
+
+- **基本类型**：`byte`、`short`、`int`、`long`、`float`、`double`、`boolean`、`char`
+- **包装类型**：`Byte`、`Short`、`Integer`、`Long`、`Float`、`Double`、`Boolean`、`Character`
+- **字符串类型**：`String`
+
+> 注意：默认值必须是字符串字面量，编译器会自动转换为对应类型的值。 
+
+`@Omittable` 可以用于任何类型的参数，包括基本类型、包装类型和字符串类型。
 
 ## IntelliJ IDEA 支持
 
