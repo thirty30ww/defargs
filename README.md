@@ -2,6 +2,7 @@
 # DefArgs
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.thirty30ww/defargs.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.thirty30ww/defargs)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-red?logo=github)](https://github.com/thirty30ww/defargs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 一个 Java 注解处理器，通过 `@DefaultValue` 和 `@Omittable` 注解为方法参数提供默认值支持和重载方法生成。
