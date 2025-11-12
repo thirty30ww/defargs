@@ -42,7 +42,7 @@ import java.util.Set;
     "io.github.thirty30ww.defargs.annotation.Omittable"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
-public class DefaultValueProcessor extends AbstractProcessor {
+public class DefArgsProcessor extends AbstractProcessor {
 
     private Messager messager;
     private Trees trees;
