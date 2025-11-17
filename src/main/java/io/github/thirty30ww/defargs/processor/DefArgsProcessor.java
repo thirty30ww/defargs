@@ -202,6 +202,9 @@ public class DefArgsProcessor extends AbstractProcessor {
 
         // 为每个可能的省略组合生成重载方法
         createOverloadVariants(method, methodTree, classTree, analysisResult, newMethods);
+        
+        // 生成重载方法后，移除原始方法上的注解
+        astOperator.removeParameterAnnotations(methodTree);
     }
     
     /**

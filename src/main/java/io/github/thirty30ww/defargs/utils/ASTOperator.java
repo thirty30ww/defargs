@@ -243,6 +243,46 @@ public class ASTOperator {
     }
     
     /**
+     * 移除方法参数上的项目相关注解
+     * <p>
+     * 只移除与项目相关的注解（@DefaultValue和@Omittable），保留其他无关注解。
+     * 这个方法在生成重载方法后调用，以避免重复处理和混淆。
+     * <p>
+     * 示例：
+     * <pre>
+     * {@code
+     * // 原始方法：
+     * void save(@NotNull String name, @DefaultValue("18") int age) { }
+     * 
+     * // 调用removeParameterAnnotations后：
+     * void save(@NotNull String name, int age) { }
+     * }
+     * </pre>
+     *
+     * @param methodTree 要移除注解的方法 AST 节点
+     */
+    public void removeParameterAnnotations(JCTree.JCMethodDecl methodTree) {
+        // 遍历方法的所有参数
+        for (JCTree.JCVariableDecl param : methodTree.params) {
+            // 创建新的注解列表，只保留非项目相关的注解
+            com.sun.tools.javac.util.List<JCTree.JCAnnotation> newAnnotations = com.sun.tools.javac.util.List.nil();
+            
+            // 遍历当前参数的所有注解
+            for (JCTree.JCAnnotation annotation : param.mods.annotations) {
+                String annotationName = annotation.getAnnotationType().toString();
+                
+                // 只保留非项目相关的注解（不是@DefaultValue和@Omittable）
+                if (!annotationName.endsWith("DefaultValue") && !annotationName.endsWith("Omittable")) {
+                    newAnnotations = newAnnotations.append(annotation);
+                }
+            }
+            
+            // 更新参数的注解列表
+            param.mods.annotations = newAnnotations;
+        }
+    }
+    
+    /**
      * 获取 TreeMaker 实例
      * <p>
      * TreeMaker 用于创建各种 AST 节点，如方法声明、变量声明、表达式等

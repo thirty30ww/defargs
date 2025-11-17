@@ -9,7 +9,7 @@ import javax.lang.model.element.TypeElement;
  * 统一管理所有警告相关的消息，包括方法未找到、不支持的参数位置等警告信息
  */
 public class WarningMessages {
-    private static final String PREFIX = "【DefaultValue】 ";
+    private static final String PREFIX = "【DefArgs】 ";
 
     /**
      * 找不到方法的警告
